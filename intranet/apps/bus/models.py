@@ -23,6 +23,27 @@ class Route(models.Model):
     class Meta:
         ordering = ["route_name"]
 
+from html.parser import HTMLParser
+
+class BusTableParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.data = []
+        self.capture = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "td":
+            self.capture = True
+
+    def handle_endtag(self, tag):
+        if tag == "td":
+            self.capture = False
+
+    def handle_data(self, data):
+        if self.capture and data.startswith("JT-"):
+            self.data.append(data.split()[0]) # We only want the bus name
+
+parser = BusTableParser()
 
 class BusAnnouncement(models.Model):
     """Announcement on the bus page. Only one instance of this model is allowed."""
